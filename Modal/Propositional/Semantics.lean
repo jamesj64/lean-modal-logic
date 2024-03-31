@@ -1,5 +1,4 @@
 import Modal.Propositional.Syntax
-import Mathlib.Data.Set.Basic
 
 universe u
 
@@ -10,6 +9,7 @@ namespace propositional
 open wff
 
 
+-- Definitions of Kripke frames / models
 def world := Set wff
 
 structure Frame : Type where
@@ -25,6 +25,9 @@ structure Frame.Model {f : Frame} extends Frame where
   val : world → Nat → Prop
 
 
+
+-- Truth in a model and other semantic notions
+
 @[simp]
 def Model.satisfies {F : Frame} (M : F.Model) (w : world) (φ : wff) : Prop :=
   match φ with
@@ -32,6 +35,7 @@ def Model.satisfies {F : Frame} (M : F.Model) (w : world) (φ : wff) : Prop :=
   | ⊥ => False
   | φ ~> ψ => Model.satisfies M w φ → Model.satisfies M w ψ
   | □ φ => ∀ w' ∈ F.worlds, F.rel w w' → Model.satisfies M w' φ
+
 
 @[simp]
 def sem_cons (Γ : Set wff) (φ : wff) : Prop :=
@@ -54,13 +58,13 @@ def Frame.valid {F : Frame} (φ : wff) :=
   ∀ M : F.Model, ∀ w ∈ F.worlds, Model.satisfies M w φ
 
 @[simp]
-def valid (φ : wff) := ∀ (F : Frame), F.valid φ
+def valid (φ : wff) := ∀ F : Frame, F.valid φ
 
 @[simp]
-def valid_t (φ : wff) := ∀ (F : TFrame), F.1.valid φ
+def valid_t (φ : wff) := ∀ F : TFrame, F.1.valid φ
 
 @[simp]
-def valid_s5 (φ : wff) := ∀ (F : S5Frame), F.1.valid φ
+def valid_s5 (φ : wff) := ∀ F : S5Frame, F.1.valid φ
 
 prefix:50 " ⊨ " => valid
 
@@ -68,6 +72,8 @@ prefix:50 " ⊨ₜ " => valid_t
 
 prefix:50 " ⊨ₛ₅ " => valid_s5
 
+
+-- Some results
 
 theorem modus_ponens {φ ψ : wff} : ⊨ (φ ~> ψ) → ⊨ φ → ⊨ ψ := by
   intro himp hp

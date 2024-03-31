@@ -20,6 +20,8 @@ notation " ~ " φ:40 => φ ⊃ ⊥
 prefix:95 "□" => Nec
 prefix:95 "◇" => λ φ => ~ □ ~ φ
 
+
+-- This definition of proof was heavily inspired by https://philpapers.org/archive/BENAHC-2.pdf
 inductive proof : Set wff → wff → Prop
 | ax {Γ} {α} (h : α ∈ Γ) : proof Γ α
 | ax1 {Γ} {α β} : proof Γ (α ~> β ~> α)
@@ -29,16 +31,13 @@ inductive proof : Set wff → wff → Prop
 | nec {Γ} {α} (h : proof ∅ α) : proof Γ (□ α)
 | distr {Γ} {α β} : proof Γ (□ (α ~> β) ~> □ α ~> □ β)
 
-
 open proof
 
 notation Γ " ⊢ " φ => proof Γ φ
 
-lemma reflexive {Γ : Set wff} {φ : wff} : Γ ⊢ φ ~> φ := by
-  have p₁ : Γ ⊢ φ ~> (φ ~> φ) ~> φ := ax1
-  have p₂ : Γ ⊢ (φ ~> φ ~> φ) ~> φ ~> φ := by
-    apply mp ax2 p₁
-  apply mp p₂ ax1
+lemma reflexive {Γ : Set wff} {φ : wff} : Γ ⊢ φ ~> φ :=
+  have : Γ ⊢ (φ ~> φ ~> φ) ~> φ ~> φ := mp ax2 ax1
+  mp this ax1
 
 
 end propositional
