@@ -38,18 +38,33 @@ lemma sub_maximize {Γ : Set wff} : Γ ⊆ maximize Γ := by
   apply subset_trans (@sub₁ 0) sub₂
 
 lemma all_mem_max {Γ : Set wff} {n : Nat} : p n ∈ maximize Γ ∨ (~p n) ∈ maximize Γ := by
-  have h : p n ∈ max_con_n Γ n ∨ (~ p n) ∈ max_con_n Γ n := by
-    sorry
-  have := Set.subset_iUnion (max_con_n Γ) n
+  have h : p n ∈ max_con_n Γ n.succ ∨ (~ p n) ∈ max_con_n Γ n.succ := by
+    induction n with
+    | zero =>
+      simp
+      split
+      . apply Or.inr
+        apply (Set.mem_insert (~ p 0) Γ)
+      . apply Or.inl
+        apply (Set.mem_insert (p 0) Γ)
+    | succ n _ =>
+      simp
+      split
+      . split
+        . apply Or.inr
+          apply (Set.mem_insert (~ p n.succ))
+        . apply Or.inl
+          apply (Set.mem_insert (p n.succ))
+      . split
+        . apply Or.inr
+          apply (Set.mem_insert (~ p n.succ))
+        . apply Or.inl
+          apply (Set.mem_insert (p n.succ))
+
+  have := Set.subset_iUnion (max_con_n Γ) n.succ
   apply Or.elim h
   . intro hp; constructor; apply this hp
   . intro hp; apply Or.inr; apply this hp
-
-
-
-
-
-
 
 
 
