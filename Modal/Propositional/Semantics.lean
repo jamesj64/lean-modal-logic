@@ -10,6 +10,7 @@ open wff
 
 
 -- Definitions of Kripke frames / models
+
 def world := Set wff
 
 structure Frame : Type where
@@ -110,7 +111,7 @@ theorem B {φ : wff} : ⊨ₛ₅ φ ~> □◇φ := by
     . exact this
     . exact And.intro ww hp
 
-theorem S4 {φ : wff} : ⊨ₛ₅ □ φ ~> □□ φ := by
+theorem S4 {φ : wff} : ⊨ₛ₅ □ φ ~> □□φ := by
   simp
   intro F M w _ h v _ wRv u uw vRu
   have := Equivalence.trans F.2 wRv vRu
@@ -119,7 +120,8 @@ theorem S4 {φ : wff} : ⊨ₛ₅ □ φ ~> □□ φ := by
 
 -- That this works honestly amazes me.
 theorem soundness {Γ : Set wff} {φ : wff} : (Γ ⊢ φ) → Γ ⊨ φ := by
-  intro hp; induction hp <;> simp_all
+  intro hp; induction hp <;> try (repeat intro); simp_all
+
 
 
 end propositional
