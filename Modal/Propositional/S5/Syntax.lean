@@ -2,8 +2,7 @@ import Mathlib.Data.Set.Basic
 
 universe u
 
-namespace propositional
-
+namespace S5
 
 inductive wff : Type
 | Atom : Nat → wff
@@ -48,19 +47,18 @@ inductive proof : Set wff → wff → Prop
 | mp {Γ} {α β} (h : proof Γ (α ~> β)) (ha : proof Γ α) : proof Γ β
 | nec {Γ} {α} (h : proof ∅ α) : proof Γ (□ α)
 | distr {Γ} {α β} : proof Γ (□ (α ~> β) ~> □ α ~> □ β)
+| axT {Γ} {α} : proof Γ (□ α ~> α)
+| axB {Γ} {α} : proof Γ (α ~> □◇α)
+| axS4 {Γ} {α} : proof Γ (□α ~> □□α)
 
-@[reducible]
-inductive proofS5 : Set wff → wff → Prop
-| ax {Γ} {α} (h : α ∈ Γ) : proofS5 Γ α
-| ax1 {Γ} {α β} : proofS5 Γ (α ~> β ~> α)
-| ax2 {Γ} {α β γ} : proofS5 Γ ((α ~> β ~> γ) ~> (α ~> β) ~> (α ~> γ))
-| ax3 {Γ} {α β} : proofS5 Γ (((~α) ~> (~β)) ~> (β ~> α))
-| mp {Γ} {α β} (h : proofS5 Γ (α ~> β)) (ha : proofS5 Γ α) : proofS5 Γ β
-| nec {Γ} {α} (h : proofS5 ∅ α) : proofS5 Γ (□ α)
-| distr {Γ} {α β} : proofS5 Γ (□ (α ~> β) ~> □ α ~> □ β)
-| axT {Γ} {α} : proofS5 Γ (□ α ~> α)
-| axB {Γ} {α} : proofS5 Γ (α ~> □◇α)
-| axS4 {Γ} {α} : proofS5 Γ (□α ~> □□α)
+inductive proofK : Set wff → wff → Prop
+| ax {Γ} {α} (h : α ∈ Γ) : proofK Γ α
+| ax1 {Γ} {α β} : proofK Γ (α ~> β ~> α)
+| ax2 {Γ} {α β γ} : proofK Γ ((α ~> β ~> γ) ~> (α ~> β) ~> (α ~> γ))
+| ax3 {Γ} {α β} : proofK Γ (((~α) ~> (~β)) ~> (β ~> α))
+| mp {Γ} {α β} (h : proofK Γ (α ~> β)) (ha : proofK Γ α) : proofK Γ β
+| nec {Γ} {α} (h : proofK ∅ α) : proofK Γ (□ α)
+| distr {Γ} {α β} : proofK Γ (□ (α ~> β) ~> □ α ~> □ β)
 
 open proof
 
@@ -69,28 +67,16 @@ notation Γ " ⊬ " φ => ¬ proof Γ φ
 notation " ⊢ " φ => proof ∅ φ
 notation " ⊬ " φ => ¬ proof ∅ φ
 
-notation Γ " ⊢ₛ₅ " φ => proofS5 Γ φ
-notation Γ " ⊬ₛ₅ " φ => ¬ proofS5 Γ φ
-notation " ⊢ₛ₅ " φ => proofS5 ∅ φ
-notation " ⊬ₛ₅ " φ => ¬ proofS5 ∅ φ
-
-@[simp]
-lemma s5_stronger_k {Γ : Set wff} {φ : wff} : (Γ ⊢ φ) → Γ ⊢ₛ₅ φ := by
-  intro h
-  induction h
-  . apply proofS5.ax; assumption
-  . apply proofS5.ax1
-  . apply proofS5.ax2
-  . apply proofS5.ax3
-  . case mp _ _ ih₁ ih₂ => apply proofS5.mp ih₁ ih₂
-  . apply proofS5.nec; assumption
-  . apply proofS5.distr
-
+notation Γ " ⊢ₖ " φ => proofK Γ φ
+notation Γ " ⊬ₖ " φ => ¬ proofK Γ φ
+notation " ⊢ₖ " φ => proofK ∅ φ
+notation " ⊬ₖ " φ => ¬ proofK ∅ φ
 
 lemma reflexive {Γ : Set wff} {φ : wff} : Γ ⊢ φ ⊃ φ :=
   have : Γ ⊢ (φ ~> φ ~> φ) ~> φ ~> φ := mp ax2 ax1
   mp this ax1
 
+@[simp]
 lemma monotonicity {Γ Δ : Set wff} {φ : wff} (sub : Γ ⊆ Δ) (h : Γ ⊢ φ) : Δ ⊢ φ := by
   induction h with
   | ax h => exact ax (sub h)
@@ -103,18 +89,18 @@ lemma monotonicity {Γ Δ : Set wff} {φ : wff} (sub : Γ ⊆ Δ) (h : Γ ⊢ φ
   | nec h _ =>
     apply nec; apply h
   | distr => apply distr
+  | axT => apply axT
+  | axB => apply axB
+  | axS4 => apply axS4
+
+@[reducible]
+def Consistent (Γ : Set wff) := Γ ⊬ ⊥
 
 @[simp]
-def consistent (Γ : Set wff) := Γ ⊬ ⊥
-
-lemma cons_sub {Γ Δ : Set wff} (sub : Γ ⊆ Δ) (h : consistent Δ) : consistent Γ := by
+lemma cons_sub {Γ Δ : Set wff} (sub : Γ ⊆ Δ) (h : Consistent Δ) : Consistent Γ := by
   apply (monotonicity sub).mt
   simp_all
 
--- (~φ ~> ~⊥) ~> ⊥ ~> φ
--- ~⊥ from reflexivity
--- ~φ ~> ~⊥ from ax1 + mp
--- mp to φ
 
 lemma cut {Γ : Set wff} {α β γ : wff} (h₁ : Γ ⊢ α ~> β) (h₂ : Γ ⊢ β ~> γ) : Γ ⊢ α ~> γ :=
   mp (mp ax2 (mp ax1 h₂)) h₁
@@ -132,7 +118,7 @@ lemma dne {Γ : Set wff} {φ : wff} : (Γ ⊢ ~~φ) → Γ ⊢ φ := by
   have := mp this h
   apply mp (cut (cut ax1 (cut ax3 ax3)) this) h
 
-
+@[simp]
 theorem deduction {Γ : Set wff} {φ ψ : wff} : (insert φ Γ ⊢ ψ) → Γ ⊢ φ ~> ψ := by
   intro h
   generalize eq : insert φ Γ = Γ'; rw [eq] at h
@@ -159,20 +145,26 @@ theorem deduction {Γ : Set wff} {φ ψ : wff} : (insert φ Γ ⊢ ψ) → Γ �
     apply mp ax1 distr
   | nec h _ =>
     apply mp ax1 (nec h)
+  | axT =>
+    apply mp ax1 axT
+  | axB =>
+    apply mp ax1 axB
+  | axS4 =>
+    apply mp ax1 axS4
 
 
-lemma not_prove_cons {Γ : Set wff} {φ : wff} : (Γ ⊬ φ) → consistent Γ := by
+lemma not_prove_cons {Γ : Set wff} {φ : wff} : (Γ ⊬ φ) → Consistent Γ := by
   contrapose; simp; intro h
   have p1 : Γ ⊢ (~φ) ~> ~⊥ := mp ax1 reflexive
   have p2 : Γ ⊢ ((~φ) ~> ~⊥) ~> ⊥ ~> φ := ax3
   apply mp (mp p2 p1) h
 
-lemma not_prove_cons_insert {Γ : Set wff} {φ : wff} : (Γ ⊬ φ) → consistent (insert (~φ) Γ) := by
+lemma not_prove_cons_insert {Γ : Set wff} {φ : wff} : (Γ ⊬ φ) → Consistent (insert (~φ) Γ) := by
   contrapose; simp; intro h
   have : Γ ⊢ ~φ ~> ⊥ := deduction h
   apply dne this
 
-lemma cons_not_prove_contra {Γ : Set wff} {φ : wff} : consistent Γ → (Γ ⊬ φ) ∨ (Γ ⊬ ~φ) := by
+lemma cons_not_prove_contra {Γ : Set wff} {φ : wff} : Consistent Γ → (Γ ⊬ φ) ∨ (Γ ⊬ ~φ) := by
   intro h
   apply byContradiction
   intro hnp; push_neg at hnp
@@ -180,5 +172,29 @@ lemma cons_not_prove_contra {Γ : Set wff} {φ : wff} : consistent Γ → (Γ �
   have := mp hnp hp
   contradiction
 
+lemma cons_insert_either {Γ : Set wff} (h : Consistent Γ) : Consistent (insert φ Γ) ∨ Consistent (insert (~φ) Γ) := by
+  have : (Γ ⊬ φ) ∨ (Γ ⊬ ~φ) := cons_not_prove_contra h
+  cases (this) with
+  | inl hnp =>
+    apply Or.inr (not_prove_cons_insert hnp)
+  | inr hnp =>
+    apply Or.inl (deduction.mt hnp)
 
-end propositional
+def subst := Nat → wff
+
+@[simp]
+def substitute (s : subst) : wff → wff
+| p n => s n
+| Falsum => Falsum
+| φ ~> ψ => substitute s φ ~> substitute s ψ
+| □φ => □ substitute s φ
+
+def bind (f : subst) (a : Nat) (b : wff) : subst :=
+  λ n => if n = a then b else f a
+
+def m_sub : subst :=
+  have base := λ n => p n
+  bind base 1 (□ p 1)
+
+
+end S5
