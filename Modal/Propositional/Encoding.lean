@@ -18,6 +18,9 @@ private lemma atom_or_bot_of_depth_zero (φ : wff_depth_n 0) : φ = Falsum ∨ �
     have := φ.2
     simp_all
   case Nec α =>
+    have := φ.2
+    rw [h] at this
+    simp at this
 
 private instance encodable_zero : Encodable (wff_depth_n 0) := by
   let f (φ : wff_depth_n 0) : Nat :=
