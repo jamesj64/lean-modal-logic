@@ -1,0 +1,2 @@
+- name: Setup Lean
+uses: Julian/setup-lean@main
