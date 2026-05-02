@@ -1,3 +1,4 @@
+import Mathlib.Data.Set.Basic
 namespace Boxdot
 
 inductive Formula : Type
