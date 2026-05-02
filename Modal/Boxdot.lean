@@ -28,12 +28,6 @@ def Conj (α β : Formula) : Formula := ~(α ~> ~β)
 
 scoped infixr:85 " & " => Conj
 
-/--
-`t φ` is the Boxdot translation of a formula `φ`. Roughly, t is the mapping `φ ↦ t φ`
-from the language of monomodal logic into itself that preserves variables and the logical constant `⊥`,
-commutes with the standard truth-functional operators, and is such that `t □a` = `□t a & t a`.
-This implementation follows the definition in Steinsvold (AJL).
--/
 def t (φ : Formula) : Formula :=
   match φ with
   | α ~> β => t α ~> t β
@@ -116,12 +110,6 @@ scoped notation L " ⊆ " L' =>
   NormalModalLogic.thms L ⊆ NormalModalLogic.thms L'
 
 
-/--
-`KT` is the specific normal modal logic whose theorems are exactly those provable
-in `KTProof` from the empty context.
-
-This corresponds to `K ⊕ (□φ → φ)` as in both AJL (Steinsvold) and Jeřábek.
--/
 def KT : NormalModalLogic := by
   constructor
   case thms =>
@@ -139,9 +127,5 @@ def KT : NormalModalLogic := by
     exact KTProof.nec h
 
 
-/--
-Boxdot Conjecture: every normal modal logic that faithfully interprets KT
-by the boxdot translation is included in KT.
--/
 theorem BoxdotConjecture (L : NormalModalLogic) (H : ∀ φ, L ⊢ ■ φ ↔ KT ⊢ φ) : L ⊆ KT := by
   sorry
